@@ -1,0 +1,44 @@
+<% layout("layouts/boilerplate") %>
+
+
+<div class="row">
+    <h1 class="text-center mb-4">New Campground</h1>
+        <div class="col-6 offset-3">
+            <form action="/campgrounds/<%=camp._id%>?_method=PUT" method="POST">
+                <div class="mb-3">
+                    <label class="form-label" for="campName">Title</label>
+                    <input class="form-control" value="<%=camp.title%>" type="text" name="campground[title]" id="campName">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="campLocation">Location</label>
+                    <input class="form-control" value="<%=camp.location%>" type="text" name="campground[location]" id="campLocation">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="campImage">Image Url</label>
+                    <input class="form-control" value="<%=camp.image%>" type="text" name="campground[image]" id="campImage">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="campPrice">Price</label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="price">$</span>
+                        <input type="text" class="form-control" id="campPrice" value="<%=camp.price%>" aria-label="Username" name="campground[price]">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="campDescription">Description</label>
+                    <textarea class="form-control" type="text" name="campground[description]" id="campDescription"><%=camp.description%></textarea>
+                </div>
+
+                <button class="btn btn-primary col-6 offset-3 mb-2">Update Camp</button>
+
+            </form>
+
+            <a href="/campgrounds/<%=camp._id%>">Come back to Campground</a>
+
+        </div>
+    
+</div>

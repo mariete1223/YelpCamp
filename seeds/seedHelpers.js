@@ -1,0 +1,43 @@
+module.exports.descriptors = [
+    "Grand",
+    "Old",
+    "Cascade",
+    "Forest",
+    "River",
+    "Mountain",
+    "Shining",
+    "Sea",
+    "Dusty",
+    "Wood",
+    "Ocean",
+    "Silent",
+    "Noisy",
+    "Gorgeus",
+    "BullFrog",
+    "Halland",
+    "Roaring"
+]
+
+module.exports.places = [
+    'Flats',
+    'Village',
+    'Canyon',
+    'Pond',
+    'Group Camp',
+    'Horse Camp',
+    'Ghost Town',
+    'Camp',
+    'Dispersed Camp',
+    'Backcountry',
+    'River',
+    'Creek',
+    'Creekside',
+    'Bay',
+    'Spring',
+    'Bayshore',
+    'Sands',
+    'Mule Camp',
+    'Hunting Camp',
+    'Cliffs',
+    'Hollow'
+]
