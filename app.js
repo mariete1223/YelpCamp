@@ -7,8 +7,9 @@ const methodOverride = require("method-override");
 const { nextTick } = require("process");
 const catchAsync = require("./utils/catchAsync");
 const ExpressError = require("./utils/ExpressError");
-const {campgroundSchema} = require("./schemas");
-const Joi = require("joi");
+const {campgroundSchema , reviewSchema} = require("./schemas");
+const Review = require("./models/review");
+const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
 mongoose.connect("mongodb://localhost:27017/yelp-camp", {
     useNewUrlParser: true,
@@ -31,9 +32,35 @@ app.set("views", path.join(__dirname, "views"));
 app.use(methodOverride("_method"))
 app.use(express.urlencoded({extended: true}))
 
+function imageExists(image_url){
+
+    var http = new XMLHttpRequest();
+
+    http.open('HEAD', image_url, false);
+    http.send();
+    console.log(http.status)
+    return !http.status.toString().startsWith("4");
+
+}
+
 const validateCampground = (req,res,next) => {
+    
+    if(!imageExists(req.body.campground.image)){
+        throw new ExpressError("Ivalid image check if it exists",400);
+    }
 
     const {error} = campgroundSchema.validate(req.body);
+    if(error){
+        const msg = error.details.map(e => e.message).join(",");
+        throw new ExpressError(msg,400);
+    }else{
+        next();
+    }
+}
+
+const validateReview = (req,res,next) => {
+
+    const {error} = reviewSchema.validate(req.body);
     if(error){
         const msg = error.details.map(e => e.message).join(",");
         throw new ExpressError(msg,400);
@@ -56,8 +83,8 @@ app.get("/campgrounds/new", async  (req,res) => {
 });
 
 app.get("/campgrounds/:id", async  (req,res) => {
-  
-    const camp = await Campground.findById(req.params.id);
+    
+    const camp = await (await Campground.findById(req.params.id)).populate("reviews");
     res.render("campgrounds/show",{camp});
 });
 
@@ -69,8 +96,21 @@ app.get("/campgrounds/:id/edit", catchAsync(async (req,res) => {
 
 app.post("/campgrounds", validateCampground, catchAsync(async  (req,res,next) => {
     
+    const camp = new Campground(req.body.campground);
     await camp.save();
     res.redirect(`/campgrounds/${camp._id}`);
+}));
+
+app.post("/campgrounds/:campId/reviews", validateReview, catchAsync(async (req,res,next) => {
+    const {campId} = req.params;
+    const campground = await Campground.findById(campId);
+    const review = new Review(req.body.review);
+    campground.reviews.push(review);
+    await campground.save();
+    await review.save();
+    res.redirect(`/campgrounds/${campground._id}`);
+    
+
 }));
 
 app.put("/campgrounds/:id", validateCampground, catchAsync(async (req,res,next) => {
@@ -85,6 +125,15 @@ app.delete("/campgrounds/:id", catchAsync(async (req,res) => {
     const {id} = req.params;
     const camp = await Campground.findByIdAndDelete(id, {...req.body.campground})
     res.redirect(`/campgrounds`);
+}));
+
+app.delete("/campgrounds/:id/reviews/:reviewId", catchAsync(async(req,res) => {
+    console.log("aaaaaaaaaaaaaaaaaaaaa")
+    const {id, reviewId } = req.params;
+    await Campground.findByIdAndUpdate(id, {pull: {reviews: reviewId}});
+    await Review.findByIdAndDelete(reviewId);
+    res.redirect(`/campgrounds/${id}`);
+    
 }));
 
 app.all('*', (req,res,next) => {

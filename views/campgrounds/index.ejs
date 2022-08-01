@@ -2,7 +2,7 @@
     <h1>All Campgrounds</h1>
     <h2><a href="/campgrounds/new">New Camp</a></h2>
 
-    <div class="d-flex flex-row flex-wrap justify-content-between">
+    <div class="d-flex flex-row flex-wrap justify-content-around ">
     <% for (let campground of campgrounds){ %>
         <div class="card mx-4 my-2" style="width: 19rem;">
             <img style="height: 200px;" class="card-image-top" src="<%=campground.image%>" alt="Camp image">
