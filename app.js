@@ -2,18 +2,18 @@ const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
 const ejsMate = require("ejs-mate");
-const Campground = require("./models/campground");
 const methodOverride = require("method-override");
-const { nextTick } = require("process");
-const catchAsync = require("./utils/catchAsync");
 const ExpressError = require("./utils/ExpressError");
-const {campgroundSchema , reviewSchema} = require("./schemas");
-const Review = require("./models/review");
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const session = require("express-session");
+
+const campgrounds = require("./routes/campgrounds")
+const reviews = require("./routes/reviews")
 
 mongoose.connect("mongodb://localhost:27017/yelp-camp", {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+   
+
 });
 
 const db = mongoose.connection;
@@ -31,110 +31,32 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(methodOverride("_method"))
 app.use(express.urlencoded({extended: true}))
+app.use(express.static(path.join(__dirname, "public")))
 
-function imageExists(image_url){
+const sessionConfig = {
+    secret: "thisshouldbeabettersecret",
+    //About resave: this may have to be enabled for session stores that don't support the "touch" command. What this does is tell the session store that a particular session is still active, which is necessary because some stores will delete idle (unused) sessions after some time.
 
-    var http = new XMLHttpRequest();
+    //If a session store driver doesn't implement the touch command, then you should enable resave so that even when a session wasn't changed during a request, it is still updated in the store (thereby marking it active).
+    resave: false,
+    // If during the lifetime of the request the session object isn't modified then, at the end of the request and when saveUninitialized is false, the (still empty, because unmodified) session object will not be stored in the session store.
+    saveUninitialized: true,
 
-    http.open('HEAD', image_url, false);
-    http.send();
-    console.log(http.status)
-    return !http.status.toString().startsWith("4");
-
+    cookie: {
+        expires: Date.now() + 1000 *60*60*24*7, //a week since Date.now()
+        maxAge: 1000 *60*60*24*7,
+        httpOnly:true
+    } 
 }
+app.use(session(sessionConfig))
 
-const validateCampground = (req,res,next) => {
-    
-    if(!imageExists(req.body.campground.image)){
-        throw new ExpressError("Ivalid image check if it exists",400);
-    }
+app.use("/campgrounds",campgrounds)
+app.use("/campgrounds/:id/reviews",reviews);
 
-    const {error} = campgroundSchema.validate(req.body);
-    if(error){
-        const msg = error.details.map(e => e.message).join(",");
-        throw new ExpressError(msg,400);
-    }else{
-        next();
-    }
-}
-
-const validateReview = (req,res,next) => {
-
-    const {error} = reviewSchema.validate(req.body);
-    if(error){
-        const msg = error.details.map(e => e.message).join(",");
-        throw new ExpressError(msg,400);
-    }else{
-        next();
-    }
-}
 
 app.get("/", (req,res) => {
     res.render("home")
 });
-
-app.get("/campgrounds", async  (req,res) => {
-    const campgrounds = await Campground.find({});
-    res.render("campgrounds/index",{campgrounds});
-});
-
-app.get("/campgrounds/new", async  (req,res) => {
-    res.render("campgrounds/new");
-});
-
-app.get("/campgrounds/:id", async  (req,res) => {
-    
-    const camp = await (await Campground.findById(req.params.id)).populate("reviews");
-    res.render("campgrounds/show",{camp});
-});
-
-app.get("/campgrounds/:id/edit", catchAsync(async (req,res) => {
-
-    const camp = await Campground.findById(req.params.id);
-    res.render("campgrounds/edit", {camp})
-}));
-
-app.post("/campgrounds", validateCampground, catchAsync(async  (req,res,next) => {
-    
-    const camp = new Campground(req.body.campground);
-    await camp.save();
-    res.redirect(`/campgrounds/${camp._id}`);
-}));
-
-app.post("/campgrounds/:campId/reviews", validateReview, catchAsync(async (req,res,next) => {
-    const {campId} = req.params;
-    const campground = await Campground.findById(campId);
-    const review = new Review(req.body.review);
-    campground.reviews.push(review);
-    await campground.save();
-    await review.save();
-    res.redirect(`/campgrounds/${campground._id}`);
-    
-
-}));
-
-app.put("/campgrounds/:id", validateCampground, catchAsync(async (req,res,next) => {
-
-    const {id} = req.params;
-    const camp = await Campground.findByIdAndUpdate(id, {...req.body.campground})
-    res.redirect(`/campgrounds/${camp._id}`);
-
-}));
-
-app.delete("/campgrounds/:id", catchAsync(async (req,res) => {
-    const {id} = req.params;
-    const camp = await Campground.findByIdAndDelete(id, {...req.body.campground})
-    res.redirect(`/campgrounds`);
-}));
-
-app.delete("/campgrounds/:id/reviews/:reviewId", catchAsync(async(req,res) => {
-    console.log("aaaaaaaaaaaaaaaaaaaaa")
-    const {id, reviewId } = req.params;
-    await Campground.findByIdAndUpdate(id, {pull: {reviews: reviewId}});
-    await Review.findByIdAndDelete(reviewId);
-    res.redirect(`/campgrounds/${id}`);
-    
-}));
 
 app.all('*', (req,res,next) => {
     next(new ExpressError("Page Not Found!!",404));
