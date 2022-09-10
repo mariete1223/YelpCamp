@@ -2,17 +2,28 @@
     <h1>All Campgrounds</h1>
     <h2><a href="/campgrounds/new">New Camp</a></h2>
 
-    <div class="d-flex flex-row flex-wrap justify-content-around ">
+    <div class="d-flex flex-column flex-wrap justify-content-around ">
     <% for (let campground of campgrounds){ %>
-        <div class="card mx-4 my-2" style="width: 19rem;">
-            <img style="height: 200px;" class="card-image-top" src="<%=campground.image%>" alt="Camp image">
-            <div class="card-body text-center">
-                <h5 class="card-title">
-                    <%=campground.title%>
-                </h5>
-                <p class="card-text"><%=campground.description%></p>
-                <a class="btn btn-primary"  href="/campgrounds/<%=campground._id%>">Check further information</a>
+        <div class="card mb-3">
+            <div class="row g-0">
+                <div class="col-4">
+                    <img class="img-fluid rounded-start"  src="<%=campground.image%>" alt="Camp image">
+                </div>
+                <div class="col-8 ">
+                    <div class="card-body  ">
+                        <h5 class="card-title mt-2">
+                            <%=campground.title%>
+                        </h5>
+                        <br>
+                        <p class="card-text"><%=campground.description%></p>
+                        <p class="card-text">
+                            <small class="text-muted"><%=campground.location%></small>
+                        </p>
+                        <a class="btn btn-primary"  href="/campgrounds/<%=campground._id%>">Check further information</a>
+                    </div>
+                </div>
             </div>
+            
         </div>
     <%}%>
     </div>
