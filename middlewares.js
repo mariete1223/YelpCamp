@@ -6,7 +6,9 @@ const Review = require("./models/review");
 
 module.exports.isLoggedIn = (req,res,next) => {
     if(!req.isAuthenticated()) {
-        
+
+        req.session.returnTo = req.originalUrl;
+
         req.flash("error","you must be signed in");
         return res.redirect("/login")
     }
@@ -25,11 +27,7 @@ function imageExists(image_url){
 }
 
 module.exports.validateCampground = (req,res,next) => {
-    
-    if(!imageExists(req.body.campground.image)){
-        throw new ExpressError("Ivalid image check if it exists",400);
-    }
-
+    console.log(req.body);
     const {error} = campgroundSchema.validate(req.body);
     if(error){
         const msg = error.details.map(e => e.message).join(",");

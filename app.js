@@ -1,3 +1,8 @@
+//if we are on production there is another way of settting enviroment variables
+if(process.env.NODE_ENV !== "production"){
+    require("dotenv").config();
+}
+
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
@@ -9,7 +14,6 @@ const flash = require("connect-flash");
 const campgroundsRoutes = require("./routes/campgrounds")
 const reviewsRoutes = require("./routes/reviews")
 const userRoutes = require("./routes/users");
-
 //PBKDF2 Hash algorythm
 const passport = require("passport")
 const LocalStrategy = require("passport-local");
@@ -69,10 +73,11 @@ passport.deserializeUser(User.deserializeUser());
 
 //middleware who will add to all our request a local variable with (if exist) the message
 app.use((req,res,next) => {
-    if(!["/login","/","/register"].includes(req.originalUrl)){
-        //https://www.youtube.com/watch?v=i0q8YCCffoM
-        req.session.returnTo = req.originalUrl;
-    }
+    // if(!["/login","/","/register"].includes(req.originalUrl)){
+    //     console.log("entro ",req.originalUrl)
+    //     //https://www.youtube.com/watch?v=i0q8YCCffoM
+    //     req.session.returnTo = req.originalUrl;
+    // }
     res.locals.currentUser = req.user;
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
