@@ -49,12 +49,10 @@ module.exports.uploadCampground = async  (req,res,next) => {
 module.exports.editCampground = async (req,res,next) => {
 
     const {id} = req.params;
-    const camp = await Campground.findById(id);
-    if(!camp._id.equals(req.user._id)){
-        req.flash("error","You dont have permission to do this operation")
-        return res.redirect(`/campground/${camp._id}`);
-    }
     const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground})
+    const imgs = req.files.map(image => ({filename: image.filename, url: image.path}));
+    campground.images.push(...imgs);
+    await campground.save();
     req.flash("success","Succesfully updated a campground!")
     res.redirect(`/campgrounds/${campground._id}`);
 
