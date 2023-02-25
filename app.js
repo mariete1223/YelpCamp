@@ -73,11 +73,11 @@ passport.deserializeUser(User.deserializeUser());
 
 //middleware who will add to all our request a local variable with (if exist) the message
 app.use((req,res,next) => {
-    // if(!["/login","/","/register"].includes(req.originalUrl)){
-    //     console.log("entro ",req.originalUrl)
-    //     //https://www.youtube.com/watch?v=i0q8YCCffoM
-    //     req.session.returnTo = req.originalUrl;
-    // }
+     if(!["/login","/","/register"].includes(req.originalUrl) && !req.originalUrl.includes("/reviews")){
+        console.log(req.originalUrl)
+         req.session.returnTo = req.originalUrl;
+     }
+     console.log(req.session.returnTo)
     res.locals.currentUser = req.user;
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");

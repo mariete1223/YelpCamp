@@ -30,6 +30,7 @@ module.exports.renderLogin = async (req,res) => {
 
 module.exports.loginUser = (req,res,next) => {
     req.flash("success","Welcome back!!");
+    console.log(req.session.returnTo)
     const redirectUrl = req.session.returnTo || '/campgrounds';
     delete req.session.returnTo;
     res.redirect(redirectUrl);
